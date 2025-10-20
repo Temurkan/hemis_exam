@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { questions as invest } from "./data/questions_invest.js";
-// import { questions as banklaw } from "./data/questions_banklaw.js";
+import { questions as banklaw } from "./data/questions_banklaw.js";
 import { questions as supervision } from "./data/questions_supervision.js";
 import { questions as digitalbank } from "./data/questions_digitalbank.js";
 import { questions as audit } from "./data/questions_audit.js";
@@ -182,7 +182,7 @@ export default function App() {
 
   const subjects = [
     { name: "Инвестиции", data: invest },
-    // { name: "Банковское право", data: banklaw },
+    { name: "Банковское право", data: banklaw },
     { name: "Банковский надзор", data: supervision },
     { name: "Цифровые банки", data: digitalbank },
     { name: "Аудит", data: audit },
