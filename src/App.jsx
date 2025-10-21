@@ -27,7 +27,7 @@ function prepareQuestions(all) {
 }
 
 // ---------- компонент теста ----------
-function QuizApp({ allQuestions, subject, onBack }) {
+function QuizApp({ allQuestions, subject, onBack, darkMode, toggleDark }) {
   const totalTime = 3000; // 50 минут
   const [finished, setFinished] = useState(false);
   const [timeLeft, setTimeLeft] = useState(totalTime);
@@ -68,41 +68,53 @@ function QuizApp({ allQuestions, subject, onBack }) {
   const used = totalTime - timeLeft;
 
   return (
-    <div className='p-6 max-w-3xl mx-auto'>
+    <div
+      className={`p-6 max-w-3xl mx-auto ${
+        darkMode ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"
+      }`}
+    >
       <div className='flex justify-between items-center mb-4'>
         <button
           onClick={onBack}
-          className='px-3 py-1 text-sm bg-gray-300 rounded-lg hover:bg-gray-400'
+          className={`px-3 py-1 text-sm rounded-lg ${
+            darkMode
+              ? "bg-gray-700 hover:bg-gray-600"
+              : "bg-gray-300 hover:bg-gray-400"
+          }`}
         >
           ← Назад
         </button>
         <h1 className='text-xl font-bold'>{subject}</h1>
-        <p className='text-gray-600'>
-          Осталось времени: {minutes}:{seconds.toString().padStart(2, "0")}
-        </p>
+        <div className='flex items-center gap-3'>
+          <p className='text-gray-500 dark:text-gray-400'>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </p>
+          <button
+            onClick={toggleDark}
+            className={`px-2 py-1 text-sm rounded-lg border ${
+              darkMode
+                ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
+                : "bg-gray-100 border-gray-300 hover:bg-gray-200"
+            }`}
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+        </div>
       </div>
 
-      {/* блок с результатом теперь показывается сверху, не убирая вопросы */}
       {finished && (
         <div className='text-center mb-6'>
           <h1 className='text-2xl font-bold mb-2'>Тест завершён</h1>
           <p>
             Результат: {score} из {questions.length}
           </p>
-          <p className='text-gray-600'>
+          <p className='text-gray-500'>
             Потрачено времени: {Math.floor(used / 60)}:
             {(used % 60).toString().padStart(2, "0")}
           </p>
-          <button
-            onClick={onBack}
-            className='mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700'
-          >
-            Вернуться к предметам
-          </button>
         </div>
       )}
 
-      {/* теперь вопросы показываются всегда */}
       <div className='space-y-6'>
         {questions.map((q, qi) => {
           const userAnswer = answers[qi];
@@ -110,7 +122,14 @@ function QuizApp({ allQuestions, subject, onBack }) {
           const isCorrect = userAnswer === correctAnswer;
 
           return (
-            <div key={qi} className='border p-4 rounded-lg'>
+            <div
+              key={qi}
+              className={`border p-4 rounded-lg ${
+                darkMode
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-gray-50"
+              }`}
+            >
               <p className='font-medium mb-3'>
                 {qi + 1}. {q.text}
               </p>
@@ -119,12 +138,18 @@ function QuizApp({ allQuestions, subject, onBack }) {
                   let color = "";
                   if (finished) {
                     if (oi === correctAnswer)
-                      color = "bg-green-200 border-green-500";
+                      color = darkMode
+                        ? "bg-green-800 border-green-600"
+                        : "bg-green-200 border-green-500";
                     else if (userAnswer === oi && oi !== correctAnswer)
-                      color = "bg-red-200 border-red-500";
+                      color = darkMode
+                        ? "bg-red-800 border-red-600"
+                        : "bg-red-200 border-red-500";
                     else color = "opacity-60";
                   } else if (userAnswer === oi) {
-                    color = "bg-blue-100 border-blue-400";
+                    color = darkMode
+                      ? "bg-blue-900 border-blue-500"
+                      : "bg-blue-100 border-blue-400";
                   }
 
                   return (
@@ -149,7 +174,7 @@ function QuizApp({ allQuestions, subject, onBack }) {
               {finished && userAnswer != null && (
                 <p
                   className={`mt-2 font-medium ${
-                    isCorrect ? "text-green-700" : "text-red-700"
+                    isCorrect ? "text-green-500" : "text-red-500"
                   }`}
                 >
                   {isCorrect
@@ -179,6 +204,12 @@ function QuizApp({ allQuestions, subject, onBack }) {
 // ---------- главный экран ----------
 export default function App() {
   const [selected, setSelected] = useState(null);
+  const [darkMode, setDarkMode] = useState(
+    window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+
+  const toggleDark = () => setDarkMode((d) => !d);
 
   const subjects = [
     { name: "Инвестиции", data: invest },
@@ -190,24 +221,57 @@ export default function App() {
 
   if (selected) {
     return (
-      <QuizApp
-        key={selected.name}
-        subject={selected.name}
-        allQuestions={selected.data}
-        onBack={() => setSelected(null)}
-      />
+      <div
+        className={
+          darkMode
+            ? "dark bg-gray-900 min-h-screen"
+            : "bg-gray-100 min-h-screen"
+        }
+      >
+        <QuizApp
+          key={selected.name}
+          subject={selected.name}
+          allQuestions={selected.data}
+          onBack={() => setSelected(null)}
+          darkMode={darkMode}
+          toggleDark={toggleDark}
+        />
+      </div>
     );
   }
 
   return (
-    <div className='p-8 text-center'>
-      <h1 className='text-2xl font-bold mb-6'>Выбери предмет</h1>
+    <div
+      className={`${
+        darkMode
+          ? "dark bg-gray-900 text-gray-100"
+          : "bg-gray-100 text-gray-900"
+      } p-8 text-center min-h-screen`}
+    >
+      <div className='flex justify-between items-center mb-6 max-w-xl mx-auto'>
+        <h1 className='text-2xl font-bold'>Выбери предмет</h1>
+        <button
+          onClick={toggleDark}
+          className={`px-3 py-1 rounded-lg border ${
+            darkMode
+              ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
+              : "bg-white border-gray-300 hover:bg-gray-200"
+          }`}
+        >
+          {darkMode ? "☀️" : "🌙"}
+        </button>
+      </div>
+
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-xl mx-auto'>
         {subjects.map((subj) => (
           <button
             key={subj.name}
             onClick={() => setSelected(subj)}
-            className='px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700'
+            className={`px-4 py-3 rounded-lg text-white ${
+              darkMode
+                ? "bg-blue-700 hover:bg-blue-600"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             {subj.name}
           </button>
